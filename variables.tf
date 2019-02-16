@@ -14,6 +14,9 @@ variable "aws_ami" {
   # Ubuntu 16.04 LTS
   default = "ami-05af84768964d3dc0"
 }
+variable "cluster_size" {
+  default = 2
+}
 variable "ssh_key_path" {
   default = "~/.ssh/id_rsa.pub"
 }
