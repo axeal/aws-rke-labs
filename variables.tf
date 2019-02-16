@@ -4,6 +4,9 @@ variable "aws_secret_key" {}
 variable "aws_region" {
   default = "eu-central-1"
 }
+variable "aws_az" {
+  default = "eu-central-1c"
+}
 variable "aws_spot_price" {
   default = "0.02"
 }

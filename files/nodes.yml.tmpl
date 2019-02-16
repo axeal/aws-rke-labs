@@ -3,6 +3,11 @@ ${nodes}
 
 ssh_agent_auth: true
 
+authentication:
+  strategy: x509
+  sans:
+    - "${elb_address}"
+
 services:
   etcd:
     snapshot: true
