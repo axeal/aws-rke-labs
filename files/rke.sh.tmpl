@@ -1,0 +1,14 @@
+#!/bin/bash -x
+
+SECONDS=0
+
+until ${curl_commands}; do
+  if (( $SECONDS > 300 )) ; then
+    printf "%03d Timed out waiting for docker to be up on all cluster hosts" $SECONDS
+    exit 1
+  fi
+  printf "%03d Waiting for docker to be up on all cluster hosts (${curl_commands})" $SECONDS
+  sleep 10
+done
+
+rke up --config ${path_module}/data/rancher-cluster.yml

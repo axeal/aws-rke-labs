@@ -11,7 +11,7 @@ resource "aws_key_pair" "ssh_key" {
 }
 
 resource "aws_spot_instance_request" "eks_cluster" {
-  count                = 2
+  count                = "${var.cluster_size}"
   ami                  = "${var.aws_ami}"
   instance_type        = "${var.aws_instance_type}"
   key_name             = "${aws_key_pair.ssh_key.key_name}"
@@ -29,7 +29,7 @@ data "template_file" "userdata" {
 
 data "template_file" "node" {
   template = "${file("files/node.yml.tmpl")}"
-  count    = "${length(aws_spot_instance_request.eks_cluster.*.id)}"
+  count    = "${var.cluster_size}"
   vars = {
     public_ip  = "${aws_spot_instance_request.eks_cluster.*.public_ip[count.index]}"
     private_ip = "${aws_spot_instance_request.eks_cluster.*.private_ip[count.index]}"
@@ -43,7 +43,33 @@ data "template_file" "nodes" {
   }
 }
 
+data "template_file" "curl" {
+  template = "curl -fs http://$${public_ip}:8081"
+  count    = "${var.cluster_size}"
+  vars = {
+    public_ip  = "${aws_spot_instance_request.eks_cluster.*.public_ip[count.index]}"
+  }
+}
+
+data "template_file" "rke" {
+  template = "${file("files/rke.sh.tmpl")}"
+  vars {
+    curl_commands = "${join(" && ",data.template_file.curl.*.rendered)}"
+    path_module   = "${path.module}"
+  }
+}
+
 resource "local_file" "rke-config" {
   content  = "${data.template_file.nodes.rendered}"
-  filename = "${path.module}/rancher-cluster.yml"
+  filename = "${path.module}/data/rancher-cluster.yml"
+}
+
+resource "local_file" "rke-script" {
+  content  = "${data.template_file.rke.rendered}"
+  filename = "${path.module}/data/rke.sh"
+
+  provisioner "local-exec" {
+    command     = "${path.module}/data/rke.sh"
+    working_dir = "${path.module}/data/"
+  }
 }
