@@ -29,7 +29,7 @@ data "template_file" "userdata" {
 
 data "template_file" "node" {
   template = "${file("files/node.yml.tmpl")}"
-  count    = 2
+  count    = "${length(aws_spot_instance_request.eks_cluster.*.id)}"
   vars = {
     public_ip  = "${aws_spot_instance_request.eks_cluster.*.public_ip[count.index]}"
     private_ip = "${aws_spot_instance_request.eks_cluster.*.private_ip[count.index]}"
@@ -43,6 +43,7 @@ data "template_file" "nodes" {
   }
 }
 
-output "nodes" {
-  value = "${data.template_file.nodes.rendered}"
+resource "local_file" "rke-config" {
+  content  = "${data.template_file.nodes.rendered}"
+  filename = "${path.module}/rancher-cluster.yml"
 }
