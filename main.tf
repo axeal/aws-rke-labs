@@ -20,7 +20,7 @@ resource "aws_spot_instance_request" "eks_cluster" {
 }
 
 data "template_file" "userdata" {
-  template = "${file("files/userdata")}"
+  template = "${file("files/userdata.tmpl")}"
 
   vars {
     docker_version = "${var.docker_version}"
