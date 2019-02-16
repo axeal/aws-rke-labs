@@ -7,3 +7,5 @@ elif [ `command -v wget` ]; then
 fi
 
 usermod -aG docker ubuntu
+
+docker run -d --name host-up-check -p 8081:80 nginx
